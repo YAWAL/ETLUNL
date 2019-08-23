@@ -1,0 +1,10 @@
+{
+    "host": ":8888",
+    "postgres": {
+        "dialect": "postgres",
+        "user": "postgres",
+        "db_name": "etlnulp",
+        "ssl_mode": "disable",
+        "password": "postgres"
+    }
+}
