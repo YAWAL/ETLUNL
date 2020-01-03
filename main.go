@@ -1,51 +1,30 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"log"
+	"net/http"
+	"os"
+	"time"
 
-	"github.com/YAWAL/ETLUNL/L"
-
-	"github.com/YAWAL/ETLUNL/E"
-	"github.com/YAWAL/ETLUNL/T"
-	"github.com/YAWAL/ETLUNL/config"
 	. "github.com/YAWAL/ETLUNL/logging"
+	"github.com/YAWAL/ETLUNL/router"
 )
 
 func main() {
 
-	configFile := flag.String("config", "./config.json", "config file path")
-	flag.Parse()
-	// read, config from form
-	conf, err := config.ReadConfig(configFile)
-	if err != nil {
-		Log.Errorf("Cannot load config: ", err.Error())
-		return
-	}
+	// init routers
+	r := router.InitRouter()
 
-	rawData, err := E.Extract("E/ir.csv")
-	if err != nil {
-		log.Println(err)
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         ":8080",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
 	}
+	Log.Infof("Application is running on %s ", srv.Addr)
 
-	for _, row := range rawData {
-		fmt.Println(row)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		Log.Errorf("Could not listen on %s: %v\n", os.Args[0], err)
 	}
-
-	preparedDate, err := T.Transform(rawData)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println("PREPARED:")
-	for _, row := range preparedDate {
-		fmt.Println(row)
-	}
-
-	pg, err := L.Postgres(conf.Postgres)
-	if err != nil {
-		log.Println(err)
-	}
-	pg.Close()
 
 }

@@ -1,4 +1,4 @@
-package L
+package load
 
 import (
 	"fmt"

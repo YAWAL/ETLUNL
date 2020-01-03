@@ -1,4 +1,4 @@
-package E
+package extract
 
 import (
 	"encoding/csv"
@@ -18,10 +18,10 @@ func Extract(filePath string) ([]model.RawData, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return processRawData(file), nil
+	return ProcessRawData(file), nil
 }
 
-func processRawData(file io.Reader) []model.RawData {
+func ProcessRawData(file io.Reader) []model.RawData {
 	var rawCSVData []model.RawData
 	reader := csv.NewReader(file)
 	for {
