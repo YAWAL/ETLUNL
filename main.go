@@ -2,17 +2,17 @@ package main
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	. "github.com/YAWAL/ETLUNL/logging"
 	"github.com/YAWAL/ETLUNL/router"
+
 )
 
 func main() {
 
-	// init routers
-	r := router.InitRouter()
+	// init router
+	r := router.New()
 
 	srv := &http.Server{
 		Handler:      r,
@@ -24,7 +24,7 @@ func main() {
 	Log.Infof("Application is running on %s ", srv.Addr)
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		Log.Errorf("Could not listen on %s: %v\n", os.Args[0], err)
+		Log.Errorf("Could not listen on %s: %v\n", srv.Addr, err)
 	}
 
 }

@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/YAWAL/ETLUNL/E"
-	"github.com/YAWAL/ETLUNL/T"
 	"github.com/YAWAL/ETLUNL/config"
+	"github.com/YAWAL/ETLUNL/extract"
 	. "github.com/YAWAL/ETLUNL/logging"
+	"github.com/YAWAL/ETLUNL/transform"
 )
+
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "text/html")
@@ -29,26 +30,46 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func Extract(w http.ResponseWriter, r *http.Request) {
-	t := template.Must(template.ParseFiles("static/extract.html"))
-	if err := t.Execute(w, "Hello World!"); err != nil {
+func Download(w http.ResponseWriter, r *http.Request) {
+	t := template.Must(template.ParseFiles("static/download.html"))
+	if err := t.Execute(w, nil); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		Log.Errorf("t.Execute: %v", err)
-		w.Write([]byte(err.Error())) // remove this
+		return
+	}
+	fmt.Println( "key: "+r.FormValue("lastGame"))
+
+	//if err := extract.DownloadResults(params["lastGame"]);err != nil {
+	if err := extract.DownloadResults(r.FormValue("lastGame"));err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		Log.Errorf("Can not download results: %s", err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+
+	w.Write([]byte("Results have been downloaded"))
+
+}
+
+func ExtractPage(w http.ResponseWriter, r *http.Request) {
+	t := template.Must(template.ParseFiles("static/extract.html"))
+	if err := t.Execute(w, nil); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		Log.Errorf("ExtractPage err : %v", err)
 		return
 	}
 }
 
-func Transform(w http.ResponseWriter, r *http.Request) {
+
+func UploadAndTransform(w http.ResponseWriter, r *http.Request) {
 	file, _, err := r.FormFile("uploaded")
 	if err != nil {
-		Log.Errorf("error during uploading file: %v", err)
+		Log.Errorf("Error during uploading file: %v", err)
 		return
 	}
 
-	preparedData, err := T.Transform(E.ProcessRawData(file))
+	preparedData, err := transform.Transform(extract.ProcessRawData(file))
 	if err != nil {
-		Log.Errorf("error during transformation of data: %v", err)
+		Log.Errorf("Error during transformation of data: %v", err)
 		return
 	}
 
@@ -63,7 +84,6 @@ func Transform(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error())) // remove this
 		return
 	}
-	
 
 }
 

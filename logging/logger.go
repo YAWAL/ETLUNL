@@ -7,6 +7,5 @@ import (
 var Log = logrus.New()
 
 func init() {
-
 	Log.Formatter = &logrus.JSONFormatter{}
 }

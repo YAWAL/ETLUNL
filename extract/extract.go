@@ -3,12 +3,37 @@ package extract
 import (
 	"encoding/csv"
 	"fmt"
+	"github.com/YAWAL/ETLUNL/model"
 	"io"
+	"net/http"
 	"os"
 	"strings"
-
-	"github.com/YAWAL/ETLUNL/model"
 )
+
+var (
+	downloadUrl = "https://old.unl.ua/mailbox/out/downloading_results/super_loto_csv_1-%s__unsort.zip"
+	resultFile  = "results.zip"
+)
+
+func DownloadResults(lastGame string) error {
+
+	resp, err := http.Get(fmt.Sprintf(downloadUrl, lastGame))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("can not retrieve results for games 1-%s", lastGame)
+	}
+	out, err := os.Create(resultFile)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
+}
 
 // Extract
 func Extract(filePath string) ([]model.RawData, error) {
